@@ -40,7 +40,7 @@ public class Pista {
         // Línea de salida/meta
         g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(3));
-        g2.drawLine(cx - 30, cy - radioInterior, cx - 30, cy - radioExterior);
+        g2.drawLine(cx - (-150), cy - radioInterior, cx - (-150), cy - radioExterior);
 
         // Puntos de control (pequeños marcadores)
         g2.setColor(new Color(255, 200, 0, 150));
