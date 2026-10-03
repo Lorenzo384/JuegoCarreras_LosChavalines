@@ -72,7 +72,7 @@ public class Pista {
         for (int i = 0; i < puntosControl.size(); i++) {
             Point p = puntosControl.get(i);
             double dist = Math.hypot(c.getX() - p.x, c.getY() - p.y);
-            if (dist < 25) {
+            if (dist < 50) {
                 c.completarPunto(i, puntosControl.size());
                 break;
             }

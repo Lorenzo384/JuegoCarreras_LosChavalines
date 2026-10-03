@@ -24,7 +24,8 @@ public class Carro {
         this.y = y;
         this.color = color;
         this.nombre = nombre;
-        this.angulo = -90; // apuntando hacia arriba
+        this.angulo = -90;
+        this.ultimoPunto = -1;// apuntando hacia arriba
     }
 
     public void reiniciar(double x, double y) {
@@ -33,7 +34,7 @@ public class Carro {
         this.angulo = -90;
         this.velocidad = 0;
         this.vuelta = 1;
-        this.ultimoPunto = 0;
+        this.ultimoPunto = -1;
         this.progreso = 0;
     }
 
@@ -116,12 +117,12 @@ public class Carro {
         int siguiente =(ultimoPunto + 1) % totalPuntos;
         if (indice == siguiente) {
             ultimoPunto = indice;
-
+            progreso = (double) ultimoPunto / totalPuntos;
             // Si el siguiente punto es el 0, completaste una vuelta
             if (ultimoPunto ==  0) {
                 vuelta++;
             }
-            progreso = (double) ultimoPunto / totalPuntos;
+
         }
     }
 
