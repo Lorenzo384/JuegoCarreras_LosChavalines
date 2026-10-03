@@ -6,6 +6,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 
 public class Juego extends JFrame implements ActionListener {
 
@@ -14,6 +20,8 @@ public class Juego extends JFrame implements ActionListener {
     private Carro carro1; // Jugador 1 (WASD)
     private Carro carro2; // Jugador 2 (Flechas)
     private boolean[] teclas = new boolean[256];
+    private boolean resultadoGuardado = false;
+    private static final Path ARCHIVO_RESULTADOS = Path.of("resultados.txt");
 
     public Juego() {
         setTitle("Carreras de Carros - 3 Vueltas");
@@ -37,7 +45,10 @@ public class Juego extends JFrame implements ActionListener {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                teclas[e.getKeyCode()] = true;
+                // Algunas teclas (ej. AltGr) tienen códigos mayores a 255: se ignoran
+                if (esTeclaValida(e.getKeyCode())) {
+                    teclas[e.getKeyCode()] = true;
+                }
                 // Tecla R para reiniciar
                 if (e.getKeyCode() == KeyEvent.VK_R) {
                     reiniciar();
@@ -46,7 +57,9 @@ public class Juego extends JFrame implements ActionListener {
 
             @Override
             public void keyReleased(KeyEvent e) {
-                teclas[e.getKeyCode()] = false;
+                if (esTeclaValida(e.getKeyCode())) {
+                    teclas[e.getKeyCode()] = false;
+                }
             }
         });
 
@@ -62,36 +75,65 @@ public class Juego extends JFrame implements ActionListener {
         carro1.reiniciar(300, 500);
         carro2.reiniciar(600, 500);
         pista.reiniciarVueltas();
+        resultadoGuardado = false;
+    }
+
+    private boolean esTeclaValida(int codigo) {
+        return codigo >= 0 && codigo < teclas.length;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Controles Jugador 1 (WASD)
-        if (teclas[KeyEvent.VK_W]) carro1.acelerar();
-        if (teclas[KeyEvent.VK_S]) carro1.frenar();
-        if (teclas[KeyEvent.VK_A]) carro1.girarIzquierda();
-        if (teclas[KeyEvent.VK_D]) carro1.girarDerecha();
+        try {
+            // Controles Jugador 1 (WASD)
+            if (teclas[KeyEvent.VK_W]) carro1.acelerar();
+            if (teclas[KeyEvent.VK_S]) carro1.frenar();
+            if (teclas[KeyEvent.VK_A]) carro1.girarIzquierda();
+            if (teclas[KeyEvent.VK_D]) carro1.girarDerecha();
 
-        // Controles Jugador 2 (Flechas)
-        if (teclas[KeyEvent.VK_UP]) carro2.acelerar();
-        if (teclas[KeyEvent.VK_DOWN]) carro2.frenar();
-        if (teclas[KeyEvent.VK_LEFT]) carro2.girarIzquierda();
-        if (teclas[KeyEvent.VK_RIGHT]) carro2.girarDerecha();
+            // Controles Jugador 2 (Flechas)
+            if (teclas[KeyEvent.VK_UP]) carro2.acelerar();
+            if (teclas[KeyEvent.VK_DOWN]) carro2.frenar();
+            if (teclas[KeyEvent.VK_LEFT]) carro2.girarIzquierda();
+            if (teclas[KeyEvent.VK_RIGHT]) carro2.girarDerecha();
 
-        // Actualizar física
-        carro1.actualizar();
-        carro2.actualizar();
+            // Actualizar física
+            carro1.actualizar();
+            carro2.actualizar();
 
-        // Colisiones con los límites de la pista
-        pista.aplicarLimites(carro1);
-        pista.aplicarLimites(carro2);
+            // Colisiones con los límites de la pista
+            pista.aplicarLimites(carro1);
+            pista.aplicarLimites(carro2);
 
-        // Detectar paso por puntos de control (vueltas)
-        pista.verificarVuelta(carro1);
-        pista.verificarVuelta(carro2);
+            // Detectar paso por puntos de control (vueltas)
+            pista.verificarVuelta(carro1);
+            pista.verificarVuelta(carro2);
 
-        // Repintar
-        repaint();
+            // Guardar el ganador una sola vez por carrera
+            if (!resultadoGuardado && (carro1.getVuelta() > 3 || carro2.getVuelta() > 3)) {
+                String ganador = carro1.getVuelta() > 3 ? carro1.getNombre() : carro2.getNombre();
+                guardarResultado(ganador);
+                resultadoGuardado = true;
+            }
+
+            // Repintar
+            repaint();
+        } catch (Exception ex) {
+            // Si algo falla en un frame, se detiene el juego de forma ordenada
+            timer.stop();
+            JOptionPane.showMessageDialog(this, "Error en el juego: " + ex.getMessage());
+        }
+    }
+
+    private void guardarResultado(String ganador) {
+        try (BufferedWriter out = Files.newBufferedWriter(ARCHIVO_RESULTADOS,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            out.write(ganador + "," + LocalDateTime.now());
+            out.newLine();
+        } catch (IOException ex) {
+            // No guardar el resultado no debe detener el juego
+            System.err.println("No se pudo guardar el resultado: " + ex.getMessage());
+        }
     }
 
     // Panel interno que dibuja todo
