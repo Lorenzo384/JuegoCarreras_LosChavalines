@@ -1,4 +1,4 @@
-package org.example;
+package org.example.src.service;
 
 import java.awt.*;
 

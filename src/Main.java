@@ -1,4 +1,6 @@
-package org.example;
+package org.example.src;
+
+import org.example.src.service.Juego;
 
 import javax.swing.SwingUtilities;
 
