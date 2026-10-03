@@ -23,6 +23,12 @@ public class Juego extends JFrame implements ActionListener {
     private boolean resultadoGuardado = false;
     private static final Path ARCHIVO_RESULTADOS = Path.of("resultados.txt");
 
+    // Paneles para el menú y las instrucciones
+    private JPanel panelMenu;
+    private JPanel panelInstrucciones;
+    private PanelJuego panelJuego;
+    private CardLayout cardLayout;
+
     public Juego() {
         setTitle("Carreras de Carros - 3 Vueltas");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,22 +40,33 @@ public class Juego extends JFrame implements ActionListener {
         pista = new Pista(450, 350);
 
         // Crear carros
-        carro1 = new Carro(300, 500, Color.RED, "Jugador 1 (WASD)");
-        carro2 = new Carro(600, 500, Color.BLUE, "Jugador 2 (Flechas)");
+        carro1 = new Carro(250, 500, Color.RED, "Jugador 1 (WASD)");
+        carro2 = new Carro(300, 500, Color.BLUE, "Jugador 2 (Flechas)");
 
-        // Panel de dibujo
-        PanelJuego panel = new PanelJuego();
-        add(panel);
+        // Layout con tarjetas para navegar entre pantallas
+        cardLayout = new CardLayout();
+        setLayout(cardLayout);
 
-        // Control de teclado
-        addKeyListener(new KeyAdapter() {
+        // Panel del juego
+        panelJuego = new PanelJuego();
+        add(panelJuego, "juego");
+
+        // Menú principal
+        crearMenu();
+        add(panelMenu, "menu");
+
+        // Pantalla de instrucciones
+        crearInstrucciones();
+        add(panelInstrucciones, "instrucciones");
+
+        // Control de teclado (solo aplica al panel del juego)
+        panelJuego.setFocusable(true);
+        panelJuego.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                // Algunas teclas (ej. AltGr) tienen códigos mayores a 255: se ignoran
                 if (esTeclaValida(e.getKeyCode())) {
                     teclas[e.getKeyCode()] = true;
                 }
-                // Tecla R para reiniciar
                 if (e.getKeyCode() == KeyEvent.VK_R) {
                     reiniciar();
                 }
@@ -63,17 +80,106 @@ public class Juego extends JFrame implements ActionListener {
             }
         });
 
-        setFocusable(true);
-        requestFocusInWindow();
-
         // Bucle del juego (60 FPS)
         timer = new Timer(16, this);
         timer.start();
+
+        // Mostrar el menú al inicio
+        cardLayout.show(getContentPane(), "menu");
     }
 
+    private void crearMenu() {
+        panelMenu = new JPanel(new GridBagLayout());
+        panelMenu.setBackground(new Color(34, 139, 34)); // verde césped
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 15, 15, 15);
+        gbc.gridx = 0;
+
+        // Título
+        JLabel titulo = new JLabel("🏁 CARRERAS DE CARROS 🏁");
+        titulo.setFont(new Font("Arial", Font.BOLD, 36));
+        titulo.setForeground(Color.WHITE);
+        gbc.gridy = 0;
+        panelMenu.add(titulo, gbc);
+
+        // Botón Jugar
+        JButton btnJugar = new JButton("🎮 JUGAR");
+        btnJugar.setFont(new Font("Arial", Font.BOLD, 20));
+        btnJugar.setPreferredSize(new Dimension(250, 60));
+        btnJugar.addActionListener(e -> {
+            int opcion = JOptionPane.showConfirmDialog(this,
+                    "¿Deseas jugar 1 vs 1 (2 jugadores)?",
+                    "Modo de juego", JOptionPane.YES_NO_OPTION);
+            if (opcion == JOptionPane.YES_OPTION) {
+                cardLayout.show(getContentPane(), "juego");
+                panelJuego.requestFocusInWindow();
+            }
+        });
+        gbc.gridy = 1;
+        panelMenu.add(btnJugar, gbc);
+
+        // Botón Instrucciones
+        JButton btnInstrucciones = new JButton("📖 INSTRUCCIONES");
+        btnInstrucciones.setFont(new Font("Arial", Font.BOLD, 20));
+        btnInstrucciones.setPreferredSize(new Dimension(250, 60));
+        btnInstrucciones.addActionListener(e ->
+                cardLayout.show(getContentPane(), "instrucciones"));
+        gbc.gridy = 2;
+        panelMenu.add(btnInstrucciones, gbc);
+    }
+
+    private void crearInstrucciones() {
+        panelInstrucciones = new JPanel(new BorderLayout());
+        panelInstrucciones.setBackground(new Color(34, 139, 34));
+
+        // Panel central con la información
+        JPanel info = new JPanel(new GridLayout(2, 1, 10, 10));
+        info.setOpaque(false);
+        info.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
+
+        // Jugador 1
+        JPanel j1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        j1.setOpaque(true);
+        j1.setBackground(Color.WHITE);
+        j1.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JLabel icono1 = new JLabel("🔴");
+        icono1.setFont(new Font("Arial", Font.PLAIN, 40));
+        JLabel texto1 = new JLabel("<html><b>JUGADOR 1</b><br>W: Acelerar<br>A: Girar izquierda<br>S: Frenar / Reversa<br>D: Girar derecha</html>");
+        texto1.setFont(new Font("Arial", Font.PLAIN, 18));
+        j1.add(icono1);
+        j1.add(texto1);
+
+        // Jugador 2
+        JPanel j2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        j2.setOpaque(true);
+        j2.setBackground(Color.WHITE);
+        j2.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        JLabel icono2 = new JLabel("🔵");
+        icono2.setFont(new Font("Arial", Font.PLAIN, 40));
+        JLabel texto2 = new JLabel("<html><b>JUGADOR 2</b><br>↑: Acelerar<br>←: Girar izquierda<br>↓: Frenar / Reversa<br>→: Girar derecha</html>");
+        texto2.setFont(new Font("Arial", Font.PLAIN, 18));
+        j2.add(icono2);
+        j2.add(texto2);
+
+        info.add(j1);
+        info.add(j2);
+
+        // Botón volver
+        JButton btnVolver = new JButton("⬅ VOLVER AL MENÚ");
+        btnVolver.setFont(new Font("Arial", Font.BOLD, 16));
+        btnVolver.setPreferredSize(new Dimension(200, 50));
+        btnVolver.addActionListener(e ->
+                cardLayout.show(getContentPane(), "menu"));
+
+        panelInstrucciones.add(info, BorderLayout.CENTER);
+        panelInstrucciones.add(btnVolver, BorderLayout.SOUTH);
+    }
+
+
     private void reiniciar() {
-        carro1.reiniciar(300, 500);
-        carro2.reiniciar(600, 500);
+        carro1.reiniciar(250, 500);
+        carro2.reiniciar(300, 500);
         pista.reiniciarVueltas();
         resultadoGuardado = false;
     }
@@ -119,7 +225,6 @@ public class Juego extends JFrame implements ActionListener {
             // Repintar
             repaint();
         } catch (Exception ex) {
-            // Si algo falla en un frame, se detiene el juego de forma ordenada
             timer.stop();
             JOptionPane.showMessageDialog(this, "Error en el juego: " + ex.getMessage());
         }
@@ -131,7 +236,6 @@ public class Juego extends JFrame implements ActionListener {
             out.write(ganador + "," + LocalDateTime.now());
             out.newLine();
         } catch (IOException ex) {
-            // No guardar el resultado no debe detener el juego
             System.err.println("No se pudo guardar el resultado: " + ex.getMessage());
         }
     }
@@ -197,7 +301,6 @@ public class Juego extends JFrame implements ActionListener {
         }
 
         private int posicion(Carro c) {
-            // Comparar vueltas y distancia al siguiente punto de control
             Carro otro = (c == carro1) ? carro2 : carro1;
             if (c.getVuelta() != otro.getVuelta()) {
                 return c.getVuelta() > otro.getVuelta() ? 1 : 2;
@@ -206,4 +309,3 @@ public class Juego extends JFrame implements ActionListener {
         }
     }
 }
-

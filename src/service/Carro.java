@@ -113,16 +113,17 @@ public class Carro {
     public int getUltimoPunto() { return ultimoPunto; }
 
     public void completarPunto(int indice, int totalPuntos) {
-        // Si pasamos al siguiente punto en orden, avanzamos progreso
-        int siguiente = (ultimoPunto + 1) % totalPuntos;
+        int siguiente =(ultimoPunto + 1) % totalPuntos;
         if (indice == siguiente) {
             ultimoPunto = indice;
-            progreso = (double) ultimoPunto / totalPuntos;
-            // Si cerramos el círculo, completamos una vuelta
-            if (indice == 0 && ultimoPunto == 0) {
+
+            // Si el siguiente punto es el 0, completaste una vuelta
+            if (ultimoPunto ==  0) {
                 vuelta++;
             }
+            progreso = (double) ultimoPunto / totalPuntos;
         }
     }
+
 }
 
