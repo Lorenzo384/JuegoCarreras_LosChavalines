@@ -8,8 +8,11 @@ public class Carro {
     private double velocidad;     // velocidad actual
     private double maxVelocidad = 6.0;
     private double aceleracion = 0.15;
-    private double friccion = 0.95;
+    private double fuerzaFreno = 0.3;
+    private double maxReversa = 2.0;
+    private double friccion = 0.99;      // pérdida de velocidad por frame al soltar el acelerador
     private double giro = 3.5;
+    private double velocidadGiroCompleto = 2.0; // desde esta velocidad el giro es total
     private Color color;
     private String nombre;
     private int vuelta = 1;
@@ -39,15 +42,27 @@ public class Carro {
     }
 
     public void frenar() {
-        velocidad = Math.max(velocidad - aceleracion * 1.5, -2.0);
+        // Si va hacia adelante frena fuerte; ya detenido, acelera en reversa
+        double fuerza = velocidad > 0 ? fuerzaFreno : aceleracion;
+        velocidad = Math.max(velocidad - fuerza, -maxReversa);
     }
 
     public void girarIzquierda() {
-        angulo -= giro;
+        angulo -= giro * factorGiro();
     }
 
     public void girarDerecha() {
-        angulo += giro;
+        angulo += giro * factorGiro();
+    }
+
+    // Un carro detenido no gira, y en reversa el giro se invierte como en un carro real
+    private double factorGiro() {
+        double factor = Math.min(Math.abs(velocidad) / velocidadGiroCompleto, 1.0);
+        return velocidad < 0 ? -factor : factor;
+    }
+
+    public void chocarConBorde() {
+        velocidad *= 0.9;
     }
 
     public void actualizar() {
@@ -68,12 +83,13 @@ public class Carro {
         g2d.translate(x, y);
         g2d.rotate(Math.toRadians(angulo));
 
-        g2d.fillRect(-12, -18, 24, 36); // cuerpo del carro
+        // Con angulo 0 el carro se mueve hacia +X, así que el frente se dibuja hacia +X
+        g2d.fillRect(-18, -12, 36, 24); // cuerpo del carro
         g2d.setColor(Color.BLACK);
-        g2d.drawRect(-12, -18, 24, 36);
-        // ventanas
+        g2d.drawRect(-18, -12, 36, 24);
+        // parabrisas (al frente)
         g2d.setColor(new Color(200, 220, 255));
-        g2d.fillRect(-9, -10, 18, 8);
+        g2d.fillRect(2, -9, 8, 18);
         g2d.dispose();
     }
 

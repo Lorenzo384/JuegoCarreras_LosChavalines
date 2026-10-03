@@ -57,10 +57,12 @@ public class Pista {
         if (dist > radioExterior - 15) {
             double factor = (radioExterior - 15) / dist;
             c.setPosicion(cx + dx * factor, cy + dy * factor);
+            c.chocarConBorde();
         }
         if (dist < radioInterior + 15) {
             double factor = (radioInterior + 15) / dist;
             c.setPosicion(cx + dx * factor, cy + dy * factor);
+            c.chocarConBorde();
         }
     }
 
